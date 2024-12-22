@@ -53,13 +53,28 @@ async function run() {
         })
 
 
+        app.get("/all-cars", async (req, res) => {
+            const result = await carsCollection.find().toArray()
+            res.send(result)
+        })
+
+
         app.get("/update-car/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await carsCollection.findOne(query);
             res.send(result)
         })
+
+
+        app.get("/car-details/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await carsCollection.findOne(query);
+            res.send(result)
+        })
         //GET APIS ENDS HERE
+
 
 
 
