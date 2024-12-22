@@ -28,15 +28,26 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-
     const carsCollection = client.db("carsDB").collection("cars");
 
 
+    //POST APIS STARTS FROM HERE
     app.post("/add-car", async (req, res) => {
         const car = req.body;
-        const result = carsCollection.insertOne(car);
+        const result = await carsCollection.insertOne(car);
         res.send(result)
     })
+    //POST APIS ENDS HERE
+
+
+    //GET APIS STARTS FROM HERE
+    app.get("/my-cars/:email", async (req, res) => {
+        const email = req.params.email;
+        const query = {userEmail: email}
+        const result = await carsCollection.find(query).toArray()
+        res.send(result)
+    })
+    //GET APIS ENDS HERE
 
 
     // Send a ping to confirm a successful connection
