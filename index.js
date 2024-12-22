@@ -29,7 +29,14 @@ async function run() {
     await client.connect();
 
 
+    const carsCollection = client.db("carsDB").collection("cars");
 
+
+    app.post("/add-car", async (req, res) => {
+        const car = req.body;
+        const result = carsCollection.insertOne(car);
+        res.send(result)
+    })
 
 
     // Send a ping to confirm a successful connection
