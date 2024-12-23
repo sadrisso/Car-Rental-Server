@@ -43,7 +43,9 @@ async function run() {
 
         app.post("/my-bookings", async (req, res) => {
             const data = req.body;
+            console.log("body: ", data)
             const result = await bookingCollection.insertOne(data)
+            console.log("Result: ", result)
             res.send(result)
         })
         //POST APIS ENDS HERE
@@ -69,16 +71,56 @@ async function run() {
 
 
         app.get("/all-cars", async (req, res) => {
-            const result = await carsCollection.find().toArray()
+            const searchName = req.query.searchName;
+            const sortByPrice = req.query.price;
+            const sortByDate = req.query.date;
+            let sort = {};
+
+            let query = {};
+            if (searchName) {
+                query = { carModel: { $regex: new RegExp(searchName, 'i') } };
+            }
+
+            if (sortByPrice) {
+                sort = {
+                    ...sort,
+                    dailyRentalPrice: -1
+                }
+            }
+
+            if (sortByDate) {
+                sort = {
+                    ...sort,
+                    date: -1
+                }
+            }
+
+            let result;
+
+            if (sort) {
+                result = await carsCollection.find(query).sort(sort).toArray();
+            }
+            else {
+                result = await carsCollection.find(query).toArray();
+            }
+            res.send(result);
+        });
+
+
+        app.get("/recent-listed", async (req, res) => {
+            // const query = { date: { $gt: "12/22/2024" } }
+            const result = await carsCollection.find().sort({ date: -1 }).limit(6).toArray()
             res.send(result)
         })
 
 
-        app.get("/recent-listed", async (req, res) => {
-            const query = { date: {$gt: "12/22/2024"} }
-            const result = await carsCollection.find(query).limit(6).toArray()
-            res.send(result)
-          })
+        app.get("/is-car-booked/:email/:model", async (req, res) => {
+            const email = req.params.email;
+            const model = req.params.model;
+            const query = { userEmail: email, carModel: model }
+            const result = await bookingCollection.findOne(query)
+            res.send(result || false)
+        })
 
 
         app.get("/update-car/:id", async (req, res) => {
