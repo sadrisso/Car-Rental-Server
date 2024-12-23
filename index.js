@@ -29,7 +29,7 @@ async function run() {
         await client.connect();
 
         const carsCollection = client.db("carsDB").collection("cars");
-
+        const bookingCollection = client.db("carsDB").collection("bookings")
 
 
 
@@ -37,6 +37,13 @@ async function run() {
         app.post("/add-car", async (req, res) => {
             const car = req.body;
             const result = await carsCollection.insertOne(car);
+            res.send(result)
+        })
+
+
+        app.post("/my-bookings", async (req, res) => {
+            const data = req.body;
+            const result = await bookingCollection.insertOne(data)
             res.send(result)
         })
         //POST APIS ENDS HERE
@@ -57,6 +64,13 @@ async function run() {
             const result = await carsCollection.find().toArray()
             res.send(result)
         })
+
+
+        app.get("/recent-listed", async (req, res) => {
+            const query = { date: {$gt: "12/22/2024"} }
+            const result = await carsCollection.find(query).limit(6).toArray()
+            res.send(result)
+          })
 
 
         app.get("/update-car/:id", async (req, res) => {
