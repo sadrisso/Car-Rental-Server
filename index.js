@@ -54,9 +54,38 @@ async function run() {
         //GET APIS STARTS FROM HERE
         app.get("/my-cars/:email", async (req, res) => {
             const email = req.params.email;
+            const sortByPrice = req.query.price;
+            const sortByDate = req.query.date;
+
+            let sort = {};
+
             const query = { userEmail: email }
-            const result = await carsCollection.find(query).toArray()
-            res.send(result)
+
+            if (sortByPrice) {
+                sort = {
+                    ...sort,
+                    dailyRentalPrice: -1
+                }
+            }
+
+            if (sortByDate) {
+                sort = {
+                    ...sort,
+                    date: -1
+                }
+            }
+
+            let result;
+
+            console.log("sort", sort)
+
+            if (sort) {
+                result = await carsCollection.find(query).sort(sort).toArray();
+            }
+            else {
+                result = await carsCollection.find(query).toArray();
+            }
+            res.send(result);
         })
 
 
@@ -160,6 +189,21 @@ async function run() {
             }
 
             const result = await carsCollection.updateOne(query, updateDoc, options)
+            res.send(result)
+        })
+
+        app.put("/update-booking/:id", async (req, res) => {
+            const id = req.params.id;
+            const data = req.body;
+            const query = { _id: new ObjectId(id) }
+
+            const updateDoc = {
+                $set: {
+                    status: data?.status
+                }
+            }
+
+            const result = await bookingCollection.updateOne(query, updateDoc)
             res.send(result)
         })
         //PUT API ENDS HERE
