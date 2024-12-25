@@ -43,9 +43,7 @@ async function run() {
 
         app.post("/my-bookings", async (req, res) => {
             const data = req.body;
-            console.log("body: ", data)
             const result = await bookingCollection.insertOne(data)
-            console.log("Result: ", result)
             res.send(result)
         })
         //POST APIS ENDS HERE
@@ -74,9 +72,10 @@ async function run() {
             const searchName = req.query.searchName;
             const sortByPrice = req.query.price;
             const sortByDate = req.query.date;
-            let sort = {};
 
+            let sort = {};
             let query = {};
+
             if (searchName) {
                 query = { carModel: { $regex: new RegExp(searchName, 'i') } };
             }
@@ -108,7 +107,6 @@ async function run() {
 
 
         app.get("/recent-listed", async (req, res) => {
-            // const query = { date: { $gt: "12/22/2024" } }
             const result = await carsCollection.find().sort({ date: -1 }).limit(6).toArray()
             res.send(result)
         })
