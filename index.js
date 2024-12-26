@@ -9,11 +9,12 @@ const app = express();
 
 //middlewares
 app.use(express.json())
-app.use(cookieParser())
-app.use(cors({
-    origin: ["http://localhost:5173"],
-    credentials: true
-}))
+// app.use(cookieParser())
+app.use(cors())
+// app.use(cors({
+//     // origin: ["*"],
+//     // credentials: true
+// }))
 
 
 
@@ -49,18 +50,22 @@ async function run() {
 
         app.post("/my-bookings", async (req, res) => {
             const data = req.body;
+            const IncData = { $inc: { bookingCount: 1 } }
+            const query = {carModel: data?.carModel}
             const result = await bookingCollection.insertOne(data)
+
+            await carsCollection.updateOne(query, IncData)
             res.send(result)
         })
 
 
-        app.post("/jwt", async (req, res) => {
-            const user = req.body;
-            const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '5hr' })
+        // app.post("/jwt", async (req, res) => {
+        //     const user = req.body;
+        //     const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '5hr' })
 
-            res.cookie("token", token, { httpOnly: true, secure: false })
-                .send({ success: true })
-        })
+        //     res.cookie("token", token, { httpOnly: true, secure: false })
+        //         .send({ success: true })
+        // })
         //POST APIS ENDS HERE
 
 
@@ -118,6 +123,7 @@ async function run() {
             }
 
             let result;
+
             if (sort) {
                 result = await bookingCollection.find(query).sort(sort).toArray()
             }
@@ -222,9 +228,10 @@ async function run() {
             const data = req.body;
             const query = { _id: new ObjectId(id) }
 
+
             const updateDoc = {
                 $set: {
-                    status: data?.status
+                    ...data
                 }
             }
 
