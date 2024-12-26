@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 require('dotenv').config()
 const port = process.env.PORT || 5000;
 const app = express();
@@ -7,7 +9,11 @@ const app = express();
 
 //middlewares
 app.use(express.json())
-app.use(cors())
+app.use(cookieParser())
+app.use(cors({
+    origin: ["http://localhost:5173"],
+    credentials: true
+}))
 
 
 
@@ -46,6 +52,15 @@ async function run() {
             const result = await bookingCollection.insertOne(data)
             res.send(result)
         })
+
+
+        app.post("/jwt", async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '5hr' })
+
+            res.cookie("token", token, { httpOnly: true, secure: false })
+                .send({ success: true })
+        })
         //POST APIS ENDS HERE
 
 
@@ -57,27 +72,22 @@ async function run() {
             const sortByPrice = req.query.price;
             const sortByDate = req.query.date;
 
-            let sort = {};
+            console.log("Cokkie --", req.cookies)
 
             const query = { userEmail: email }
 
+            let sort = {};
+
             if (sortByPrice) {
-                sort = {
-                    ...sort,
-                    dailyRentalPrice: -1
-                }
+                sort = { ...sort, dailyRentalPrice: -1 }
             }
 
             if (sortByDate) {
-                sort = {
-                    ...sort,
-                    date: -1
-                }
+                sort = { ...sort, date: -1 }
             }
 
             let result;
 
-            console.log("sort", sort)
 
             if (sort) {
                 result = await carsCollection.find(query).sort(sort).toArray();
@@ -92,7 +102,28 @@ async function run() {
         app.get("/my-bookings/:email", async (req, res) => {
             const email = req.params.email;
             const query = { userEmail: email }
-            const result = await bookingCollection.find(query).toArray()
+
+
+            const sortByDate = req.query.date;
+            const sortByPrice = req.query.price;
+
+            let sort = {}
+
+            if (sortByDate) {
+                sort = { ...sort, date: -1 }
+            }
+
+            if (sortByPrice) {
+                sort = { ...sort, dailyRentalPrice: -1 }
+            }
+
+            let result;
+            if (sort) {
+                result = await bookingCollection.find(query).sort(sort).toArray()
+            }
+            else {
+                result = await bookingCollection.find(query).toArray()
+            }
             res.send(result)
         })
 
@@ -110,17 +141,11 @@ async function run() {
             }
 
             if (sortByPrice) {
-                sort = {
-                    ...sort,
-                    dailyRentalPrice: -1
-                }
+                sort = { ...sort, dailyRentalPrice: -1 }
             }
 
             if (sortByDate) {
-                sort = {
-                    ...sort,
-                    date: -1
-                }
+                sort = { ...sort, date: -1 }
             }
 
             let result;
